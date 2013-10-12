@@ -21,13 +21,12 @@ class Acetone
         {
             $this->server = "http://" . $this->server;
         }
-
         $this->forceException = Config::get("acetone::force_exceptions", 'auto');
     }
 
     /**
      * Will purge a single URL from the Varnish Cache. Accepts arrays of multiple URLs.
-     * Warning: if purging many URLs, use BAN instead, it has significant performance benefits.
+     * Warning: if purging many URLs, use banMany instead, it has significant performance benefits.
      *
      *
      * @param $url
@@ -37,41 +36,43 @@ class Acetone
     public function purge($url)
     {
         if (is_array($url))
-            array_map(array($this, "purge"), $url);
+            return array_walk($url, array($this, "purge"));
 
-        $url = parse_url($url);
-        $path = null;
-        if (isset($url['path']))
-            $path = $url['path'];
-        else
-            throw new AcetoneException("URL to Purge could not be parsed");
-
-        $client = new Client($this->server);
-        $request = $client->createRequest("PURGE", $path);
-        try {
-            $response = $request->send();
-        }catch (ClientErrorResponseException $e)
-        {
-            $this->handleException($e);
-            return false;
-        }
-        if ($response->getStatusCode() == 200)
-        {
-            return true;
-        }
-        return false;
+        return $this->simpleCacheRequest("PURGE", $url);
     }
 
+    /**
+     * Same as purge, but will perform a REFRESH request instead.
+     *
+     * @param $url
+     * @return bool
+     */
+    public function refresh($url)
+    {
+        if (is_array($url))
+            return array_walk($url, array($this, "refresh"));
+
+        return $this->simpleCacheRequest("REFRESH", $url);
+    }
+
+    /**
+     * Will send a BAN request to the Varnish Cache. If $regex is set to true, the $url parameter will be treated as a raw regex string and
+     * sent straight along as the x-ban-url header. This is useful for banning multiple items by matching them.
+     *
+     * @param $url
+     * @param bool $regex
+     * @return bool
+     * @throws Exceptions\AcetoneException
+     */
     public function ban($url, $regex = false)
     {
         if (is_array($url))
-            array_map(array($this, "ban"), $url);
+            return array_walk($url, array($this, "ban"));
 
         $path = null;
         if ($regex == false)
         {
             $url = parse_url($url);
-
             if (isset($url['path']))
                 $path = "^" . $url['path'] . "$";
             else
@@ -100,6 +101,63 @@ class Acetone
         return false;
     }
 
+    /**
+     * Shortcut to help with banning many elements based off a shared url prefix
+     *
+     * Sample Usage:
+     *
+     * Acetone::banMany("/posts/");
+     *
+     * This would have the effect of banning any URL which starts with /posts/
+     * e.g. /posts/title-1, /posts/title-2, etc.
+     *
+     * @param $urlPrefix
+     * @return bool
+     */
+    public function banMany($urlPrefix)
+    {
+        return $this->ban("^" . $urlPrefix, true);
+    }
+
+    /**
+     * Fundementals for placing a simple cache invalidation request to Varnish.
+     *
+     * @param $method
+     * @param $url
+     * @return bool
+     * @throws Exceptions\AcetoneException
+     */
+    private function simpleCacheRequest($method, $url)
+    {
+        $url = parse_url($url);
+        $path = null;
+        if (isset($url['path']))
+            $path = $url['path'];
+        else
+            throw new AcetoneException("URL could not be parsed");
+
+        $client = new Client($this->server);
+        $request = $client->createRequest($method, $path);
+        try {
+            $response = $request->send();
+        }catch (ClientErrorResponseException $e)
+        {
+            $this->handleException($e);
+            return false;
+        }
+        if ($response->getStatusCode() == 200)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handles any exceptions thrown by Guzzle.
+     *
+     * @param \Exception $e
+     * @throws \Exception
+     */
     private function handleException(\Exception $e)
     {
         if (App::environment() !== "production" && $this->forceException === 'auto')
