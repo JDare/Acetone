@@ -14,7 +14,7 @@ Begin by adding the following to your `composer.json`
         "jdare/acetone": "dev-master"
     }
   
-Run a composer update `composer update jdare/acetone`
+Run a composer update `composer update`
 
 
 Add it to your list of providers in laravel `/app/app.php`
@@ -49,7 +49,7 @@ _Please Note_: All these functions assume some sort of standard VCL setup for pu
 
 For the differences between Purge, Refresh and Ban, please check the [Varnish documentation](https://www.varnish-cache.org/docs/3.0/tutorial/purging.html).
 
-##Purge & Refresh
+##Purge &amp; Refresh
 When you need to invalidate your cache, you can provide a URL to be removed as a parameter for Acetones functions. Here are some sample usages:
     
     function someAction()
@@ -65,7 +65,7 @@ Both Purge and Refresh will accept arrays of URL's, however be warned each url w
 
 To better invalidate mass URL's use Ban or BanMany
 
-##Ban & BanMany
+##Ban &amp; BanMany
 
 Ban will work the same way as Purge and Refresh if needed, however it can also accept an optional parameter to make it match a Regex string rather than a URL.
 
@@ -80,7 +80,7 @@ A helper function is available for mass banning, called "banMany", e.g.
 
     Acetone::banMany("/post"); //will ban any URL starting with /post
     
-ban & banMany are much more efficient ways to remove lots of URL's due to Varnish' pattern matching, rather than having to make a single request for every URL.
+ban &amp; banMany are much more efficient ways to remove lots of URL's due to Varnish' pattern matching, rather than having to make a single request for every URL.
 
 FAQ
 =========
