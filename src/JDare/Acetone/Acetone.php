@@ -62,9 +62,42 @@ class Acetone
         return false;
     }
 
-    public function ban($url)
+    public function ban($url, $regex = false)
     {
-        
+        if (is_array($url))
+            array_map(array($this, "ban"), $url);
+
+        $path = null;
+        if ($regex == false)
+        {
+            $url = parse_url($url);
+
+            if (isset($url['path']))
+                $path = "^" . $url['path'] . "$";
+            else
+                throw new AcetoneException("URL to Ban could not be parsed");
+        }else{
+            $path = $url;
+        }
+
+        $client = new Client($this->server);
+        $request = $client->createRequest("BAN", $path, array(
+            Config::get("acetone::ban_url_header", "x-ban-url") => $path,
+        ));
+
+        try {
+            $response = $request->send();
+        }catch (ClientErrorResponseException $e)
+        {
+            $this->handleException($e);
+            return false;
+        }
+
+        if ($response->getStatusCode() == 200)
+        {
+            return true;
+        }
+        return false;
     }
 
     private function handleException(\Exception $e)

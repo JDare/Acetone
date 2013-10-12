@@ -15,16 +15,14 @@ sub vcl_recv {
             error 405 "Not allowed.";
         }
         return (lookup);
-       }
 	}
     if (req.request == "BAN") {
 		if (!client.ip ~ purgers) {
             error 405 "Not allowed.";
         }
 
-        ban("obj.http.x-url ~ " + req.http.x-ban-url +
-            " && obj.http.x-host ~ " + req.http.x-ban-host);
-        error 200 "Banned";
+       ban("obj.http.x-url ~ " + req.http.x-ban-url);
+       error 200 "Banned";
 
     }
     if (req.request == "REFRESH") {
@@ -38,10 +36,7 @@ sub vcl_recv {
 }
 
 sub vcl_fetch {
-   if (req.url ~ "\.(png|gif|jpg)$") {
-     unset beresp.http.set-cookie;
-     set beresp.ttl = 1h;
-	}
+    set beresp.http.x-url = req.url;
 }
 sub vcl_hit {
         if (req.request == "PURGE") {
@@ -61,14 +56,17 @@ sub vcl_pass {
         }
 }
 
-#This is for debugging, remove for production site.
 sub vcl_deliver {
+    unset resp.http.x-url;
+
+    #This is for debugging, remove for production site.
 	if (obj.hits > 0) {
 		set resp.http.X-Varnish-Cache = "HIT";
 	}
 	else {
 		set resp.http.X-Varnish-Cache = "MISS";
 	}
-     return (deliver);
+    return (deliver);
+    #end debug
 }
 

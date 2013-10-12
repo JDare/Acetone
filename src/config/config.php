@@ -10,12 +10,12 @@ return array(
     |   Connection information for the Varnish server you want to connect to.
     |
     |   This should probably be the FQDN for your Varnish server, as its used for creating
-    |   the Host of the PURGE request, e.g. example.com:80
+    |   the Hostname of the PURGE request, e.g. example.com:80
     |
     */
 
     'server' => array(
-        "address" => "varnish-test.local:80",
+        "address" =>        "varnish-test.local",
     ),
 
     /*
@@ -34,5 +34,16 @@ return array(
     |   Supported: "auto", true, false
     */
 
-    'force_exceptions' => "auto",
+    'force_exceptions' =>   "auto",
+
+    /*
+    |--------------------------------------------------------------------------
+    | Ban X-Headers
+    |--------------------------------------------------------------------------
+    |
+    |   The Header names to be used when requesting a ban for a URL.
+    |
+    */
+
+    'ban_url_header' =>      'x-ban-url',
 );
