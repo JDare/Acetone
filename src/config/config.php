@@ -15,7 +15,7 @@ return array(
     */
 
     'server' => array(
-        "address" =>        "varnish-test.local",
+        "address" =>        "your-varnish.local",
     ),
 
     /*
