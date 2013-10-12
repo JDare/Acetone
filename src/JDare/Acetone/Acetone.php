@@ -64,7 +64,7 @@ class Acetone
 
     public function ban($url)
     {
-
+        
     }
 
     private function handleException(\Exception $e)

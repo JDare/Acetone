@@ -9,6 +9,9 @@ return array(
     |
     |   Connection information for the Varnish server you want to connect to.
     |
+    |   This should probably be the FQDN for your Varnish server, as its used for creating
+    |   the Host of the PURGE request, e.g. example.com:80
+    |
     */
 
     'server' => array(
