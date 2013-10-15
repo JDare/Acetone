@@ -116,6 +116,16 @@ class Acetone
      */
     public function banMany($urlPrefix)
     {
+        if (is_array($urlPrefix))
+        {
+            $banString = "(";
+            foreach($urlPrefix as $url)
+            {
+                $banString .= "^" . $url . "|" ;
+            }
+            $banString = trim($banString, "|") . ")";
+            return $this->ban($banString, true);
+        }
         return $this->ban("^" . $urlPrefix, true);
     }
 
